@@ -12,6 +12,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 @Configuration
 public class S3Config {
@@ -47,5 +48,16 @@ public class S3Config {
         .endpointOverride(URI.create("https://s3.us-east-1.amazonaws.com"))
         .credentialsProvider(StaticCredentialsProvider.create(ac))
         .build();
+    }
+
+
+    // Configuracion para firmar URL's con S3
+    @Bean
+    public S3Presigner s3Presigner() {
+        AwsCredentials ac = AwsBasicCredentials.create(awsAccessKey, awsPasswordKey);
+        return S3Presigner.builder()
+            .credentialsProvider(StaticCredentialsProvider.create(ac))
+            .region(Region.of(awsRegion))
+            .build();
     }
 }

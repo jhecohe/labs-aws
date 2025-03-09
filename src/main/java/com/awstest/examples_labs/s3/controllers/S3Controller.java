@@ -4,11 +4,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.awstest.examples_labs.s3.services.IS3Service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("bucket")
@@ -85,4 +86,23 @@ public class S3Controller {
         return ResponseEntity.ok("Archivo se descargo correctamente");
             
     }
+
+    @PostMapping("/upload/presigned")
+    public String uploadPresignedFile(@RequestParam String nameBucket, 
+                                    @RequestParam String key, 
+                                    @RequestParam Long minutes) {
+        //TODO: process POST request
+        Duration activeLink = Duration.ofMinutes(minutes);
+        return is3Service.generatePresignedUploadURL(nameBucket, key, activeLink);
+    }
+
+    @PostMapping("/download/presigned")
+    public String downloadPresignedFile(@RequestParam String nameBucket, 
+                                    @RequestParam String key, 
+                                    @RequestParam Long minutes) {
+        //TODO: process POST request
+        Duration activeLink = Duration.ofMinutes(minutes);
+        return is3Service.generatePresignedDownloadURL(nameBucket, key, activeLink);
+    }
+    
 }

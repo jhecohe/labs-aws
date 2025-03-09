@@ -10,7 +10,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -22,6 +21,10 @@ import software.amazon.awssdk.services.s3.model.HeadBucketResponse;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,8 @@ public class S3ServiceImpl implements IS3Service {
 
     private final S3Client s3Client;
     // private final S3AsyncClient s3AsyncClient;
+
+    private final S3Presigner s3Presigner;
 
     @Value("${spring.destination.folder}")
     private String destinationFolder;
@@ -118,13 +123,35 @@ public class S3ServiceImpl implements IS3Service {
             .key(key)
             .build();
 
-            return null;
+        PutObjectPresignRequest presignRequest = PutObjectPresignRequest
+            .builder()
+            .putObjectRequest(request)
+            .signatureDuration(duration)
+            .build();
+
+        return s3Presigner.
+            presignPutObject(presignRequest).
+            url().toString();
     }
 
     @Override
     public String generatePresignedDownloadURL(String nameBucket, String key, Duration duration) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'generatePresignedDownloadURL'");
+        GetObjectRequest request = GetObjectRequest
+            .builder()
+            .bucket(nameBucket)
+            .key(key)
+            .build();
+            
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest
+            .builder()
+            .getObjectRequest(request)
+            .signatureDuration(duration)
+            .build();
+        
+        return s3Presigner.
+            presignGetObject(presignRequest).
+            url().toString();
     }
     
 }
